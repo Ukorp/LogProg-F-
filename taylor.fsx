@@ -1,25 +1,35 @@
-// Print a table of a given function f, computed by taylor series
-
-// function to compute
-let f = sin
+open System
 
 let a = 0.0
-let b = 1.0
-let n = 10
+let b = 0.5
+let step = 0.1
+let eps = 1e-10
 
-// Define a function to compute f using naive taylor series method
-let taylor_naive = f
+// Dumb Taylor
+let naiveTaylor x eps =
+    let rec loop n term sum =
+        if abs(term) < eps then sum, n
+        else
+            let next = (-1.0)**(float (n)) * x**(float (2*n+1)) / float (2*n+1)
+            loop (n+1) next (sum + next)
+    loop 1 x x
 
+// Smart Taylor
+let smartTaylor x eps =
+    let rec loop n term sum =
+        if abs(term) < eps then sum, n
+        else
+            let next = -term * x * x * float (2*n-1) / float (2*n+1)
+            loop (n+1) next (sum + next)
+    loop 1 x x
 
-// Define a function to do the same in a more efficient way
-let taylor = f
-
-let main =
-   for i=0 to n do
-     let x = a+(float i)/(float n)*(b-a)
-     printfn "%5.2f  %10.6f  %10.6f   %10.6f" x (f x) (taylor_naive x) (taylor x)
-// make sure to improve this table to include the required number of iterations
-// for each of the methods
-
-main
-
+// Вывод
+printfn "%-6s %-10s %-12s %-8s %-12s %-10s" "x" "Встроенная" "Smart Taylor" "Итерации" "Dumb Taylor" "Итерации"
+let rec loop x =
+    if x <= b then
+        let builtin = Math.Atan(x)
+        let (smartVal, smartTerms) = smartTaylor x eps
+        let (naiveVal, naiveTerms) = naiveTaylor x eps
+        printfn "%-6.2f %-10.8f %-12.8f %-8d %-12.8f %-10d" x builtin smartVal smartTerms naiveVal naiveTerms
+        loop (x + step)
+loop a
